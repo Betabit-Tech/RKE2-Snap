@@ -1,0 +1,32 @@
+name: rke2
+base: core22
+version: '0.1a'  # Update with your version
+summary: Rancher Kubernetes Engine (RKE2)
+description: |
+  RKE2, The Rancher Kubernetes Engine, is a CNCF-certified Kubernetes distribution that runs entirely within containers.
+confinement: classic
+grade: stable
+
+architectures:
+  - build-on: amd64
+
+parts:
+  rke2:
+    plugin: dump
+    source-type: local
+    source: ./bin-amd
+    organize:
+      'rke2*': bin/
+    override-build: |
+      cp -a $SNAPCRAFT_PROJECT_DIR/bin-amd/* .
+
+apps:
+  rke2-server:
+    command: bin/rke2 server
+    daemon: simple  # Configure as a simple daemon
+    restart-condition: always  # Restart service unless stopped by the user
+
+  rke2-agent:
+    command: bin/rke2 agent
+    daemon: simple  # Configure as a simple daemon
+    restart-condition: always  # Restart service unless stopped by the user
