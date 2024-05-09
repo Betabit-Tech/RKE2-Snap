@@ -1,9 +1,9 @@
 name: rke2
 base: core22
-version: '0.2a'  # Update with your version
+version: '0.3b'
 summary: Rancher Kubernetes Engine (RKE2)
 description: |
-  RKE2, The Rancher Kubernetes Engine, is a CNCF-certified Kubernetes distribution that runs entirely within containers.
+  RKE2, The Rancher Kubernetes Engine, is a CNCF-certified Kubernetes distribution that runs entirely within containers. This snap is meant to be used in conjunction with the RKE2 Charm, which will handle distribution of configuration files, setting of server/agent mode, etc.
 confinement: classic
 grade: devel
 
@@ -14,10 +14,17 @@ architectures:
 parts:
   rke2:
     plugin: dump
+    #snapcraft will download and extract the following package
     source: https://github.com/rancher/rke2/releases/download/v1.29.2%2Brke2r1/rke2.linux-amd64.tar.gz
 
 apps:
-  rke2-server:
-    command: bin/rke2 server
-    daemon: simple  # Configure as a simple daemon
-    restart-condition: always  # Restart service unless stopped by the user
+  server:
+    command: bin/rke2 server --config $SNAP_COMMON/config.yaml --data-dir $SNAP_COMMON/data --write-kubeconfig $SNAP_COMMON/rke2.yaml
+    daemon: simple  
+    install-mode: disable
+    restart-condition: always
+  agent:
+    command: bin/rke2 agent --config $SNAP_COMMON/config.yaml --data-dir $SNAP_COMMON/data
+    daemon: simple  
+    install-mode: disable
+    restart-condition: always
