@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Set default values for the RKE2 installation
+snapctl set env.nodetype="server"

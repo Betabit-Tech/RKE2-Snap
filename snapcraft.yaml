@@ -10,21 +10,67 @@ grade: devel
 architectures:
   - build-on: [amd64]
     build-for: [amd64]
+  - build-on: [arm64]
+    build-for: [arm64]
 
 parts:
   rke2:
     plugin: dump
-    #snapcraft will download and extract the following package
-    source: https://github.com/rancher/rke2/releases/download/v1.29.2%2Brke2r1/rke2.linux-amd64.tar.gz
+    # Set dummy source given override-pull script
+    source: .
+    # Snapcraft will download and extract the following package
+    override-pull: |
+      # Function to determine architecture and suffix
+      setup_arch() {
+          case $(uname -m) in
+          x86_64|amd64)
+              ARCH=amd64
+              SUFFIX=$(uname -s | tr '[:upper:]' '[:lower:]')-${ARCH}
+              ;;
+          aarch64|arm64)
+              ARCH=arm64
+              SUFFIX=$(uname -s | tr '[:upper:]' '[:lower:]')-${ARCH}
+              ;;
+          *)
+              echo "unsupported architecture $(uname -m)"
+              exit 1
+              ;;
+          esac
+      }
+
+      # Initialize architecture determination
+      setup_arch
+
+      # Define the version
+      VERSION="v1.28.9+rke2r1"
+
+      # Construct the download URL
+      URL="https://github.com/rancher/rke2/releases/download/${VERSION}/rke2.${SUFFIX}.tar.gz"
+
+      # Use wget or curl to download the file
+      wget $URL -O rke2.tar.gz || curl -L $URL -o rke2.tar.gz
+
+      # Extract the downloaded tar.gz file
+      tar -xzf rke2.tar.gz
+
+      # Move the extracted files to the proper directory
+      # Assuming 'rke2' binary and other necessary files are in the root of the tarball
+      mv rke2* "${SNAPCRAFT_PART_INSTALL}/"
+
+      # Delete the downloaded tar.gz file to clean up
+      rm -f rke2.tar.gz
+  scripts:
+    plugin: dump
+    source: scripts/
+    source-type: local
+    # be sure to chmod +x to make executable
+    organize:
+      'rke2-wrapper.sh': bin/rke2-wrapper
 
 apps:
-  server:
-    command: bin/rke2 server --config $SNAP_COMMON/config.yaml --data-dir $SNAP_COMMON/data --write-kubeconfig $SNAP_COMMON/rke2.yaml
-    daemon: simple  
-    install-mode: disable
-    restart-condition: always
-  agent:
-    command: bin/rke2 agent --config $SNAP_COMMON/config.yaml --data-dir $SNAP_COMMON/data
+  node:
+    #be careful with leading /, which looks to root rather than reletive dir. 
+    command: bin/rke2-wrapper
     daemon: simple  
     install-mode: disable
     restart-condition: always

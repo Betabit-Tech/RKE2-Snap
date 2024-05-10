@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Define the configuration file location
+#config_file="$SNAP_COMMON/config.yaml"
+
+# Write the warning header to the configuration file
+#{
+#    echo "# Configuration File"
+#    echo "# WARNING: This file is managed by the Snap package."
+#    echo "# Any manual changes may be overwritten by the Snap."
+#} > "$config_file"
+
+# Fetch all configuration keys from snapctl and prepare JSON
+#config_json=$(snapctl get -d | jq '{data: . | with_entries(select(.key | startswith("conf."))) | with_entries(.key |= ltrimstr("conf."))}')
+
+# Update the YAML configuration file with the new settings, appending below the header
+#echo "$config_json" | yq e '.data' - | tail -n +2 >> "$config_file"
+
+touch $SNAP_COMMON/config.yaml
